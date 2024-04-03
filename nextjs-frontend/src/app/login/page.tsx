@@ -5,8 +5,8 @@ import { LoginApi, CheckAuthApi } from "../../endpoint/api";
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-    const [username, setUsername] = useState("test@test.com");
-    const [password, setPassword] = useState("123456");
+    const [username, setUsername] = useState("test12@test.com");
+    const [password, setPassword] = useState("Aa123456!");
     const router = useRouter()
     const handleSubmit = (event: any) => {
         event.preventDefault();
