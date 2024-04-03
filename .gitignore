@@ -2,3 +2,4 @@
 /nextjs-frontend/.next/
 /nestjs-backend/node_modules/
 /nestjs-backend/dist/
+.DS_Store
