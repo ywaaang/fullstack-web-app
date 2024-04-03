@@ -1,0 +1,4 @@
+/nextjs-frontend/node_modules/
+/nextjs-frontend/.next/
+/nestjs-backend/node_modules/
+/nestjs-backend/dist/
