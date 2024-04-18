@@ -48,7 +48,7 @@ export class AuthController {
     });
     res
       .cookie('access_token', token.accessToken, {
-        maxAge: 1000 * 60,
+        maxAge: token.expiresIn,
         httpOnly: true,
       })
       .send(token);

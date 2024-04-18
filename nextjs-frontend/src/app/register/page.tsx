@@ -1,7 +1,23 @@
 'use client';
 import Image from "next/image";
+import { FormEventHandler, useState } from "react";
+import { RegisterApi } from "../../endpoint/api";
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function Register() {
+    const [username, setUsername] = useState("test12@test.com");
+    const [password, setPassword] = useState("Aa123456!");
+    const [confirmpassword, setConfirmpassword] = useState("Aa123456!");
+    const router = useRouter();
+    const handleSubmit = (event: any) => {
+        event.preventDefault();
+        RegisterApi(username, password, confirmpassword)
+        .then(() => {
+            router.push('/login')
+        }).catch(e => {
+            alert(e);
+        });
+    };
     return (
         <div className="w-full flex flex-wrap">
             <div className="w-full md:w-1/2 flex flex-col">
@@ -18,19 +34,8 @@ export default function Home() {
                     <p className="text-center text-3xl">Join Us.</p>
                     <form
                         className="flex flex-col pt-3 md:pt-8"
-                        onSubmit={(event) => event.preventDefault()}
+                        onSubmit={handleSubmit}
                     >
-                        <div className="flex flex-col pt-4">
-                            <label htmlFor="name" className="text-lg">
-                                Name
-                            </label>
-                            <input
-                                type="text"
-                                id="name"
-                                placeholder="John Smith"
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"
-                            />
-                        </div>
 
                         <div className="flex flex-col pt-4">
                             <label htmlFor="email" className="text-lg">
@@ -40,6 +45,9 @@ export default function Home() {
                                 type="email"
                                 id="email"
                                 placeholder="your@email.com"
+                                onChange={(event) =>
+                                    setUsername(event.target.value)
+                                }
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"
                             />
                         </div>
@@ -52,6 +60,9 @@ export default function Home() {
                                 type="password"
                                 id="password"
                                 placeholder="Password"
+                                onChange={(event) =>
+                                    setPassword(event.target.value)
+                                }
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"
                             />
                         </div>
@@ -67,6 +78,9 @@ export default function Home() {
                                 type="password"
                                 id="confirm-password"
                                 placeholder="Password"
+                                onChange={(event) =>
+                                    setConfirmpassword(event.target.value)
+                                }
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mt-1 leading-tight focus:outline-none focus:shadow-outline"
                             />
                         </div>

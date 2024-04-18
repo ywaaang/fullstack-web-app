@@ -7,10 +7,11 @@ Frontend is based on Nextjs with SSR feature.
 Backend is based on Nestjs, and Golang separately. 
 
 ### Feature list
-- [ ]  Login/Register
-- [ ]  Authentication and Authorization
+- [Done]  Login/Register
+- [Done]  Authentication and Authorization
 - [ ]  Form CRUD
 - [ ]  Files Upload
 - [ ]  Encryption/Decryption
 - [ ]  Error handler and Visualizations
 - [ ]  Avatar resize and Upload
+- [ ]  SSE messaging

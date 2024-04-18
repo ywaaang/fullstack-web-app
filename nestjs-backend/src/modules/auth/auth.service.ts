@@ -19,7 +19,7 @@ export class AuthService {
     username: string;
   }): Promise<any> {
     return {
-      expiresIn: 60,
+      expiresIn: 1000 * 60 * 10,
       accessToken: await this.jwtService.signAsync({
         username: data.username,
         type: TokenType.ACCESS_TOKEN

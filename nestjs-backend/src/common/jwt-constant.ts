@@ -1,4 +1,4 @@
 export const jwtConstants = {
     secret: '123456',
-    expiresIn: '60s'
+    expiresIn: '600s'
 }

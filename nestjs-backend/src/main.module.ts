@@ -3,7 +3,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AppModule } from './modules/app/app.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
+import { MemoModule } from './modules/memo/memo.module';
 import { User } from './modules/user/entities/user.entity';
+import { Memo } from './modules/memo/entities/memo.entity';
 
 @Module({
   imports: [
@@ -13,7 +15,7 @@ import { User } from './modules/user/entities/user.entity';
       port: 5432,
       password: '1111',
       username: 'postgres',
-      entities: [User],
+      entities: [User, Memo],
       database: 'fullstack-app',
       synchronize: true,
       logging: true,
@@ -21,6 +23,7 @@ import { User } from './modules/user/entities/user.entity';
     UserModule,
     AuthModule,
     AppModule,
+    MemoModule
   ],
   providers: [],
 })
