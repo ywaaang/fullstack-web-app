@@ -20,13 +20,15 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  onDelete: any
+  onDelete: Function
+  onUpdate: Function
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onDelete
+  onDelete,
+  onUpdate
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -52,6 +54,9 @@ export function DataTable<TData, TValue>({
                   </TableHead>
                 )
               })}
+              <TableHead key={'action'}>
+                <div>Actions</div>
+              </TableHead>
             </TableRow>
           ))}
         </TableHeader>
@@ -68,7 +73,8 @@ export function DataTable<TData, TValue>({
                   </TableCell>
                 ))}
                 <TableCell>
-                  <Button onClick={() => onDelete(row.original)}>Delete</Button>
+                  <Button variant={'outline'} onClick={() => onUpdate(row.original)}>Edit</Button>
+                  <Button className="mx-2" onClick={() => onDelete(row.original)}>Delete</Button>
                 </TableCell>
               </TableRow>
             ))

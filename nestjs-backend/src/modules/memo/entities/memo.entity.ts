@@ -1,16 +1,20 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column
+} from 'typeorm';
+import { BaseEntity } from 'src/common/entities';
 
-@Entity()
-export class Memo {
+@Entity('t_memo')
+export class MemoEntity extends BaseEntity {
+  @Column()
+  public userId: string;
+
+  @Column()
+  public content: string;
+
   /**
-   * this decorator will help to auto generate id for the table.
+   * memo create time
    */
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ type: 'varchar' })
-  content: string;
-
-  @Column({ type: 'varchar' })
-  date: string;
+  @Column()
+  public createTime = new Date().getTime();
 }

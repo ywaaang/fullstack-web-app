@@ -1,35 +1,54 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { MemoService } from './memo.service';
-import { CreateMemoDto } from './dto/create-memo.dto';
-import { UpdateMemoDto } from './dto/update-memo.dto';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    UseGuards,
+    UseInterceptors,
+    ClassSerializerInterceptor
+  } from '@nestjs/common';
+  import { AuthGuard } from '@nestjs/passport';
+  import { User } from '../auth/decorators';
+  import { AuthUser } from '../auth/interfaces';
+  import { MemoService } from './memo.service';
+  import { MemoEntity } from './entities';
+  import { CreateMemoDto, DeleteMemoDto, EditMemoDto, FindMemoDto } from './dto';
+  
+  @Controller('memo')
+  export class MemoController {
+    constructor(
+      private readonly memoService: MemoService
+    ) {
+    }
+  
+    @UseGuards(AuthGuard())
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get('list')
+    public async getMemoList(@User() user: AuthUser): Promise<any> {
+      return await this.memoService.findMemoListByUser(user.id,);
+    }
 
-@Controller('memo')
-export class MemoController {
-  constructor(private readonly memoService: MemoService) {}
+    @UseGuards(AuthGuard())
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Post('create')
+    public async createMemoByUser(@Body() createMemoDto: CreateMemoDto, @User() user: AuthUser): Promise<MemoEntity> {
+      return await this.memoService.createMemoByUser(user.id, createMemoDto);
+    }
 
-  @Post()
-  create(@Body() createMemoDto: CreateMemoDto) {
-    return this.memoService.create(createMemoDto);
+    @UseGuards(AuthGuard())
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Delete(':id')
+    public async deleteMemoByUser(@Param() params: DeleteMemoDto, @User() user: AuthUser): Promise<void> {
+      return await this.memoService.deleteMemoByUser(user.id, params);
+    }
+
+    @UseGuards(AuthGuard())
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Post('edit')
+    public async editMemoByUser(@Body() editMemoDto: EditMemoDto, @User() user: AuthUser): Promise<void> {
+      return await this.memoService.editMemoByUser(user.id, editMemoDto);
+    }
   }
-
-  @Get()
-  findAll() {
-    return this.memoService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.memoService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMemoDto: UpdateMemoDto) {
-    return this.memoService.update(+id, updateMemoDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    console.log('delete', id)
-    return this.memoService.remove(+id);
-  }
-}
+  

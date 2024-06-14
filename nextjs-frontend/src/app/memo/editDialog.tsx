@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -20,16 +20,21 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Memo as MemoType, VoidFunction } from "./types";
 
-interface DialogProps{
-    onEdit: any
+interface DialogProps {
+    onEdit: Function
     open: boolean
+    data: Partial<MemoType>
+    setOpen: any
 }
 
-export function CreateDialog({
+export function EditDialog({
     onEdit,
-    open
-  }: DialogProps) {
+    open,
+    data,
+    setOpen
+}: DialogProps) {
     const formSchema = z.object({
         content: z.string().min(2, {
             message: "Content must be at least 2 characters.",
@@ -42,39 +47,44 @@ export function CreateDialog({
         },
     });
 
+    useEffect(() => {
+        form.reset({
+          content: data.content
+        });
+      }, [open, form.reset]);
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof formSchema>) {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
         const payload = {
-            ...values,
-            date: `${new Date().getFullYear()}${new Date().getMonth()}${new Date().getDay()}`
+            ...data,
+            ...values
         }
         await onEdit(payload);
     }
     return (
-        <Dialog open={open}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle className="mb-4">Edit Memo</DialogTitle>
                     <DialogDescription>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="content"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input placeholder="Content" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button type="submit">Save</Button>
-                        </form>
-                    </Form>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="content"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Input placeholder="Content" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit">Save</Button>
+                            </form>
+                        </Form>
                     </DialogDescription>
                 </DialogHeader>
             </DialogContent>

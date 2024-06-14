@@ -1,49 +1,48 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  Injectable
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { validateHash, generateHash } from '../../common/utils';
-import { type UserLoginDto } from './dtos/user-login.dto';
-import { TokenType } from 'src/common/token-type';
-import { UserService } from '../user/user.service';
+import {
+  UserNotFoundException,
+  UserPasswordIncorrectException
+} from 'src/common/exceptions';
+import { comparePassword, objectIdToString } from 'src/utils';
+import { UserEntity } from 'src/modules/user/entities';
+import { UserService } from 'src/modules/user/user.service';
+import { LoginUserDto } from './dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService,
-    private userService: UserService,
-  ){}
-  getAuth(): boolean {
-    return true;
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService
+  ) {
   }
 
-  async createAccessToken(data: {
-    username: string;
-  }): Promise<any> {
+  /**
+   * retrieve a user and verify the password
+   * @param {LoginUserDto} user
+   */
+  public async validateUser(user: LoginUserDto): Promise<UserEntity> {
+    const targetUser = (await this.userService.findUsersByUsername(user.username))[0];
+    if (!targetUser) {
+      throw new UserNotFoundException();
+    }
+    if (!(await comparePassword(user.password, targetUser.password))) {
+      throw new UserPasswordIncorrectException();
+    }
+    return targetUser;
+  }
+
+  /**
+   * login method
+   * @param {LoginUserDto} user
+   */
+  public async login(user: LoginUserDto): Promise<{ token: string }> {
+    const targetUser = await this.validateUser(user);
+    const payload = { username: targetUser.username, sub: objectIdToString(targetUser.id) };
     return {
-      expiresIn: 1000 * 60 * 10,
-      accessToken: await this.jwtService.signAsync({
-        username: data.username,
-        type: TokenType.ACCESS_TOKEN
-      }),
+      token: this.jwtService.sign(payload),
     };
-  }
-
-  async validateUser(req: UserLoginDto): Promise<any> {
-    const user = await this.userService.findOne({
-      username: req.username,
-    });
-
-    if (!user) {
-      throw new Error('unknown user')
-    }
-    const isPasswordValid = await validateHash(
-      req.password,
-      user?.password,
-    );
-
-    if (!isPasswordValid) {
-      throw new Error('Wrong password')
-    }
-
-    return user;
   }
 }

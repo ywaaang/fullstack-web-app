@@ -1,21 +1,31 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { Module, Global } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from 'src/common/jwt-constant';
-import { JwtAuthStrategy } from 'src/common/jwt-authstrategy';
 import { UserModule } from '../user/user.module';
-import { UserService } from '../user/user.service';
+import { JwtStrategy } from './jwt.strategy';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
 
+const passportModule = PassportModule.register({ defaultStrategy: 'jwt' });
+
+// Set this module global to export 'passportModule' globally
+@Global()
 @Module({
   imports: [
-    forwardRef(() => UserModule),
-    JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: jwtConstants.expiresIn }
-    })
+    passportModule,
+    JwtModule.registerAsync({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      useFactory: async (configService: ConfigService): Promise<Record<string, any>> => ({
+        privateKey: configService.get<string>('jwt.privateKey'),
+        signOptions: configService.get<object>('jwt.signOptions')
+      }),
+      inject: [ConfigService]
+    }),
+    UserModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthStrategy],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService, passportModule]
 })
-export class AuthModule {}
+export class AuthModule { }

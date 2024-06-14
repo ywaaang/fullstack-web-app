@@ -47,7 +47,6 @@ export function CreateDialog({
         // ✅ This will be type-safe and validated.
         const payload = {
             ...values,
-            date: `${new Date().getFullYear()}${new Date().getMonth()}${new Date().getDay()}`
         }
         await onCreate(payload);
         setOpen(false);

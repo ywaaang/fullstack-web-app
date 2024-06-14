@@ -5,26 +5,29 @@ import {
     QueryMemoApi,
     CreateMemoApi,
     DeleteMemoByIDApi,
-} from "../../endpoint/api";
+    EditMemoByIDApi,
+    FindMemoByIDApi
+} from "../../fetch/api";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { Memo, columns } from "./column";
+import { columns } from "./column";
 import { DataTable } from "./table";
-import { MemoForm } from "./form";
 import { Memo as MemoType } from "./types";
 import { CreateDialog } from "./createDialog";
+import { EditDialog } from "./editDialog";
 
 export default function Memo() {
     const [searchID, setSearchID] = useState('') as any;
+    const [isOpen, setIsOpen] = useState(false);
+    const [editTarget, setEditTarget] = useState({} as MemoType);
     const {
         data: listData,
         error,
         mutate,
         isLoading,
-    } = useSWR(`/memo/${searchID}`, QueryMemoApi);
+    } = useSWR('list', QueryMemoApi);
     const handleSearch = async (values: Partial<MemoType>) => {
-        setSearchID(values.id)
-        mutate();
+        setSearchID(values.id);
     };
     const handleCreate = async (values: MemoType) => {
         await CreateMemoApi(values);
@@ -36,33 +39,35 @@ export default function Memo() {
         setSearchID('');
         mutate();
     };
+    const handleUpdate = (values: MemoType) => {
+        setEditTarget(values);
+        setIsOpen(true);
+    }
+    const handleEdit = async (values: MemoType) => {
+        await EditMemoByIDApi(values);
+        setEditTarget({} as MemoType);
+        setIsOpen(false);
+        mutate();
+    }
     return (
-        <div className="w-full flex flex-wrap">
-            <div className="w-full md:w-1/2 flex flex-col">
-                <div className="flex md:justify-start my-auto pt-8 md:pt-0 px-8 md:px-24 lg:px-32">
-                    <MemoForm onSearch={handleSearch} />
+        <div className="w-full flex flex-wrap py-20">
+            <div className="w-full flex flex-col">
+                <div className="w-full flex justify-between items-center">
+                    <div className="flex md:justify-start my-2 md:pt-0 px-8 md:px-24 lg:px-32">
+                        <CreateDialog onCreate={handleCreate} />
+                    </div>
                 </div>
-                <div className="flex md:justify-start my-2 md:pt-0 px-8 md:px-24 lg:px-32">
-                    <CreateDialog onCreate={handleCreate} />
-                </div>
-
-                {!isLoading && listData?.length && !error ? (
-                    <div className="flex flex-col justify-center md:justify-start my-auto pt-8 md:pt-0 px-8 md:px-24 lg:px-32">
+                {!isLoading && listData?.data?.length && !error ? (
+                    <div className="flex flex-col justify-center md:justify-start my-20 pt-8 md:pt-0 px-8 md:px-24 lg:px-32">
                         <DataTable
                             columns={columns}
-                            data={listData}
+                            data={listData.data}
                             onDelete={handleDelete}
+                            onUpdate={handleUpdate}
                         />
                     </div>
                 ) : null}
-            </div>
-
-            <div className="w-1/2 shadow-2xl">
-                <img
-                    className="object-cover w-full h-screen hidden md:block"
-                    src="https://source.unsplash.com/IXUM4cJynP0"
-                    alt="login"
-                />
+                <EditDialog setOpen={setIsOpen} onEdit={handleEdit} open={isOpen} data={editTarget} />
             </div>
         </div>
     );

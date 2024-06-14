@@ -1,16 +1,18 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column
+} from 'typeorm';
+import {
+  Exclude
+} from 'class-transformer';
+import { BaseEntity } from 'src/common/entities';
 
-@Entity()
-export class User {
-  /**
-   * this decorator will help to auto generate id for the table.
-   */
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('t_user')
+export class UserEntity extends BaseEntity {
+  @Column()
+  public username: string;
 
-  @Column({ type: 'varchar', length: 40 })
-  username: string;
-
-  @Column({ type: 'varchar' })
-  password: string;
+  @Exclude()
+  @Column()
+  public password: string;
 }

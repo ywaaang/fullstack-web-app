@@ -1,39 +1,22 @@
 import {
-  IsAlphanumeric,
-  IsEmail,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
   IsString,
-  Matches,
+  IsNotEmpty,
   MinLength,
+  MaxLength
 } from 'class-validator';
 
-const passwordRegEx =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[@$!%*?&])[A-Za-zd@$!%*?&]{8,20}$/;
-
 export class CreateUserDto {
-  @IsNotEmpty()
-  @IsEmail(null, { message: 'Please provide valid Email.' })
-  username: string;
-
-  @IsNotEmpty()
-  @Matches(passwordRegEx, {
-    message: `Password must contain Minimum 8 and maximum 20 characters, 
-      at least one uppercase letter, 
-      one lowercase letter, 
-      one number and 
-      one special character`,
+  @IsString()
+  @IsNotEmpty({ message: 'username can not be empty' })
+  @MaxLength(50, {
+    message: "username is too long"
   })
-  password: string;
+  public readonly username: string;
 
-  @IsNotEmpty()
-  @Matches(passwordRegEx, {
-    message: `Password must contain Minimum 8 and maximum 20 characters, 
-      at least one uppercase letter, 
-      one lowercase letter, 
-      one number and 
-      one special character`,
+  @IsString()
+  @IsNotEmpty({ message: 'password can not be empty' })
+  @MinLength(6, {
+    message: "password is too short"
   })
-  confirmpassword: string;
+  public readonly password: string;
 }

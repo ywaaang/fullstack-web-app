@@ -1,48 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import {
+    Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
-import { Memo } from './entities/memo.entity';
-import { CreateMemoDto } from './dto/create-memo.dto';
-import { UpdateMemoDto } from './dto/update-memo.dto';
+import { ObjectID } from 'mongodb';
+import {
+    MemoNotFoundException,
+    UnknownMemoException
+} from 'src/common/exceptions';
+import {
+    MongoRepository,
+    ObjectLiteral
+} from 'typeorm';
+import { MemoEntity } from './entities';
+import { CreateMemoDto, UserMemosDto, DeleteMemoDto, EditMemoDto } from './dto';
 
 @Injectable()
 export class MemoService {
-  constructor(
-    @InjectRepository(Memo)
-    private readonly memoRepository: Repository<Memo>,
-  ) {}
-  async create(createMemoDto: CreateMemoDto) {
-    const memos = await this.memoRepository.save(createMemoDto);
-    return memos;
-  }
-
-  async findAll() {
-    const memos = await this.memoRepository.find();
-    return memos;
-  }
-
-  async findOne(id: number) {
-    if (!id) {
-      const memos = await this.memoRepository.find();
-      return memos;
+    constructor(
+        @InjectRepository(MemoEntity)
+        private readonly memoRepo: MongoRepository<MemoEntity>,
+    ) {
     }
-    const memo = await this.memoRepository.findOneBy({
-      id
-    });
-    return memo ? [memo] : [];
-  }
 
-  update(id: number, updateMemoDto: UpdateMemoDto) {
-    return `This action updates a #${id} memo`;
-  }
-
-  async remove(id: number) {
-    const memo = await this.memoRepository.delete({
-      id
-    });
-    if (memo.affected === 1) {
-      return true
+    /**
+     * fine memo data
+     * @param {string} id - id
+     */
+    public async findMemoListByUser(userId: string): Promise<Array<MemoEntity> | undefined> {
+        return await this.memoRepo.find({
+            where: {
+                userId: { $eq: userId }
+            }
+        });
     }
-    throw new Error('failed')
-  }
+
+    /**
+     * find memo data by id
+     * @param {string} id - id
+     */
+    public async createMemoByUser(id: string, createMemoDto: CreateMemoDto): Promise<MemoEntity> {
+        const newMemo = new MemoEntity();
+        newMemo.content = createMemoDto.content;
+        newMemo.userId = id;
+        await this.memoRepo.save(newMemo);
+        return newMemo
+    }
+
+    /**
+     * delete memo data by id
+     * @param {string} userId - userId
+     * @param {string} id - id
+     */
+    public async deleteMemoByUser(userId: string, params: DeleteMemoDto): Promise<void> {
+        if (!params || !params.id) {
+            throw new UnknownMemoException();
+        }
+        const memo = await this.memoRepo.findOne({
+            where: {
+                _id: { $eq: ObjectID(params.id) }
+            }
+        });
+        if (!memo || memo.userId !== userId) {
+            throw new MemoNotFoundException();
+        }
+        await this.memoRepo.deleteOne({
+            _id: ObjectID(params.id)
+        });
+    }
+
+    /**
+     * edit memo data by id
+     * @param {string} userId - userId
+     * @param {string} data - Memo
+     */
+    public async editMemoByUser(userId: string, editMemoDto: EditMemoDto): Promise<void> {
+        if (!editMemoDto || !editMemoDto.id) {
+            throw new UnknownMemoException();
+        }
+        const memo = await this.memoRepo.findOne({
+            where: {
+                _id: { $eq: ObjectID(editMemoDto.id) }
+            }
+        });
+        if (!memo || memo.userId !== userId) {
+            throw new MemoNotFoundException();
+        }
+        await this.memoRepo.updateOne({
+            _id: ObjectID(editMemoDto.id)
+        }, {
+            $set: { content: editMemoDto.content }
+        });
+    }
 }

@@ -1,5 +1,7 @@
 export interface Memo {
     id?: string | number,
     content: string,
-    date: string
+    createTime?: string
 }
+
+export type VoidFunction = () => void

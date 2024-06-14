@@ -1,19 +1,25 @@
 "use client";
 import Image from "next/image";
 import { FormEventHandler, useState } from "react";
-import { LoginApi, CheckAuthApi } from "../../endpoint/api";
 import { useRouter } from 'next/navigation';
+import { setToken } from '../../lib/auth';
+import {
+  postLoginData
+} from '../services/login';
 
 export default function Home() {
-    const [username, setUsername] = useState("test12@test.com");
+    const [username, setUsername] = useState("test@test.com");
     const [password, setPassword] = useState("Aa123456!");
     const router = useRouter()
     const handleSubmit = (event: any) => {
         event.preventDefault();
-        LoginApi(username, password)
-        .then(() => {
+        postLoginData({
+            username: username,
+            password: password
+          }).then((token): void => {
+            setToken(token);
             router.push('/')
-        });
+          });
     };
 
     return (

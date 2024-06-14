@@ -1,7 +1,7 @@
 'use client';
 import Image from "next/image";
 import { FormEventHandler, useState } from "react";
-import { RegisterApi } from "../../endpoint/api";
+import { postRegisterData } from "../services/login";
 import { useRouter } from 'next/navigation';
 
 export default function Register() {
@@ -11,11 +11,15 @@ export default function Register() {
     const router = useRouter();
     const handleSubmit = (event: any) => {
         event.preventDefault();
-        RegisterApi(username, password, confirmpassword)
-        .then(() => {
+        if (confirmpassword !== password) {
+            alert('Mismatch password')
+            return;
+        }
+        postRegisterData({
+            username: username,
+            password: password
+        }).then((): void => {
             router.push('/login')
-        }).catch(e => {
-            alert(e);
         });
     };
     return (

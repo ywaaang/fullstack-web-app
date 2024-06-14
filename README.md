@@ -2,16 +2,17 @@
 
 ## A fullstack app designed to demonstrate common features between frontend and backend.
 
-Frontend is based on Nextjs with SSR feature.
+Frontend is based on Nextjs.
 
-Backend is based on Nestjs, and Golang separately. 
+Backend is based on Nestjs.
+
+Go version is to be implemented.
 
 ### Feature list
 - [Done]  Login/Register
 - [Done]  Authentication and Authorization
-- [ ]  Form CRUD
-- [ ]  Files Upload
-- [ ]  Encryption/Decryption
-- [ ]  Error handler and Visualizations
+- [Done]  Form CRUD
+- [Done]  Files Upload
 - [ ]  Avatar resize and Upload
 - [ ]  SSE messaging
+- [ ]  Encryption/Decryption

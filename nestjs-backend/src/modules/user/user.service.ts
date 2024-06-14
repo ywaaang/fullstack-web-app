@@ -1,88 +1,78 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type FindOptionsWhere, Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
-import { generateHash } from '../../common/utils';
+import { ObjectID } from 'mongodb';
+import {
+  MongoRepository,
+  ObjectLiteral
+} from 'typeorm';
+import { UserExistException } from 'src/common/exceptions';
+import {
+  hashPassword,
+  objectIdToString
+} from 'src/utils';
+import { UserEntity } from './entities';
+import { CreateUserDto } from './dto';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class UserService {
-  /**
-   * Here, we have used data mapper approch for this tutorial that is why we
-   * injecting repository here. Another approch can be Active records.
-   */
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-  ) {}
+    @InjectRepository(UserEntity)
+    private readonly userRepo: MongoRepository<UserEntity>,
+    private readonly fileService: FileService
+  ) {
+  }
 
   /**
-   * this is function is used to create User in User Entity.
-   * @param createUserDto this will type of createUserDto in which
-   * we have defined what are the keys we are expecting from body
-   * @returns promise of user
+   * count user by username
+   * @param username
    */
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const registered = await this.userRepository.findOneBy({username: createUserDto.username});
-    console.log('registered', registered, createUserDto)
-    if (registered) {
-      throw new Error('Already registered')
+  public async countUserByUsername(username: string): Promise<number> {
+    return await this.userRepo.count({
+      username: { $eq: username }
+    });
+  }
+
+  /**
+   * create new user
+   * @param {CreateUserDto} createUserDto
+   */
+  public async createUser(createUserDto: CreateUserDto): Promise<void> {
+    if ((await this.countUserByUsername(createUserDto.username)) > 0) {
+      throw new UserExistException();
     }
-    if (createUserDto.password !== createUserDto.confirmpassword) {
-      throw new Error('Mismatch paassword')
-    }
-    const user: User = new User();
-    user.username = createUserDto.username;
-    user.password = generateHash(createUserDto.password);
-    return this.userRepository.save(user);
+    const newUser = new UserEntity();
+    newUser.username = createUserDto.username;
+    newUser.password = await hashPassword(createUserDto.password);
+    // At first, we create a new user data
+    await this.userRepo.save(newUser);
+    // Then, we create a new disk data that associated with the new user
+    await this.fileService.createUserDisk(objectIdToString(newUser.id));
   }
 
   /**
-   * Find single user
+   * fine user data by id
+   * @param {string} username - user name
    */
-  findOne(findData: FindOptionsWhere<User>): Promise<User | null> {
-    return this.userRepository.findOneBy(findData);
+  public async findUserById(id: string): Promise<UserEntity | undefined> {
+    return await this.userRepo.findOne({
+      where: {
+        _id: { $eq: ObjectID(id) }
+      }
+    });
   }
 
   /**
-   * this function is used to get all the user's list
-   * @returns promise of array of users
+   * fine users data by username
+   * @param {string} username - user name
    */
-  findAllUser(): Promise<User[]> {
-    return this.userRepository.find();
-  }
-
-  /**
-   * this function used to get data of use whose id is passed in parameter
-   * @param id is type of number, which represent the id of user.
-   * @returns promise of user
-   */
-  viewUser(id: number): Promise<User> {
-    return this.userRepository.findOneBy({ id });
-  }
-
-  /**
-   * this function is used to updated specific user whose id is passed in
-   * parameter along with passed updated data
-   * @param id is type of number, which represent the id of user.
-   * @param updateUserDto this is partial type of createUserDto.
-   * @returns promise of udpate user
-   */
-  updateUser(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user: User = new User();
-    user.username = updateUserDto.username;
-    user.password = updateUserDto.password;
-    user.id = id;
-    return this.userRepository.save(user);
-  }
-
-  /**
-   * this function is used to remove or delete user from database.
-   * @param id is the type of number, which represent id of user
-   * @returns nuber of rows deleted or affected
-   */
-  removeUser(id: number): Promise<{ affected?: number }> {
-    return this.userRepository.delete(id);
+  public async findUsersByUsername(username: string): Promise<UserEntity[]> {
+    return await this.userRepo.find({
+      where: {
+        username: { $eq: username }
+      }
+    });
   }
 }

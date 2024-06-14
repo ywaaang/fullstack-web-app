@@ -1,12 +1,19 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { FileModule } from '../file/file.module';
 import { MemoService } from './memo.service';
 import { MemoController } from './memo.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Memo } from './entities/memo.entity';
+import { MemoEntity } from './entities';
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      MemoEntity
+    ]),
+    FileModule
+  ],
   controllers: [MemoController],
   providers: [MemoService],
-  imports: [TypeOrmModule.forFeature([Memo])],
+  exports: [MemoService]
 })
-export class MemoModule {}
+export class MemoModule { }
